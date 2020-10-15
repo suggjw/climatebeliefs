@@ -1,0 +1,204 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <title>American Climate Beliefs</title>
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.7.0/dist/leaflet.css"/>
+    <link rel="stylesheet" href="https://use.fontawesome.com/releases/v5.14.0/css/all.css">
+    <link href="https://fonts.googleapis.com/css?family=Titillium+Web" rel="stylesheet">
+    <style>
+        html, body, #map { width: 100%; height: 100%; margin: 0; background: #fff; }
+
+        #legendContainer {
+          position: fixed;
+          bottom: 30px;
+          right: 10px;
+          background-color: white;
+          border: 1px solid lightgrey;
+          width: 308px;
+          height: 150px;
+          background-image: url("./img/legend.jpg");
+          background-repeat: no-repeat;
+          background-position: center;
+          background-size: contain;
+          box-shadow: 0 0 10px;
+        }
+
+        #titleinfo {
+          padding: 10px;
+          padding-left: 20px;
+          box-shadow: 0 0 10px;
+          font-family: 'Titillium Web', sans-serif;
+          font-size:  16px;
+          position: fixed;
+          top: 10px;
+          right: 10px;
+          background-color: white;
+          width: 280px;
+          height: 750px;
+          text-align: left;
+        }
+
+      h2{
+          padding-bottom: 0px;
+          margin: 0px;
+        }
+
+      p{
+          padding: 10px;
+          margin: 0px;
+      }
+
+      .toolclass{
+        font-family: 'Titillium Web', sans-serif;
+        font-size: 16px;
+      }
+
+      p2{
+        font-size: 18px;
+        padding-top: 20px;
+      }
+
+    </style>
+    <link href="https://fonts.googleapis.com/css?family=Titillium+Web" rel="stylesheet">
+    <script src="https://unpkg.com/leaflet@1.7.0/dist/leaflet.js"></script>
+    <script src="js/leaflet-providers.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet-ajax/2.1.0/leaflet.ajax.min.js"></script>
+  </head>
+  <body>
+  <!-- Our web map and content will go here -->
+  <div id="map"></div>
+
+  <div id="legendContainer"></div>
+
+ <div id="titleinfo">
+    <h2>What do Americans believe about Climate Change?</h2>
+    <p>Americans remain polarized about climate change, yet recent research has uncovered a plurality of opinions among the public, with support for
+      a range of awareness levels, risk perceptions, and policy prescriptions. This map shows the character and distribution of these beliefs at the county level, as indicated by
+      each county's cluster membership. In general, clusters one and two are more opposed to climate change opinions, cluster three is more moderate, and clusters four, five, and
+      six are most supportive, yet they all vary in their support for individual opinions. This map uses a value-by-alpha technique to apply increasing levels of transparency to counties with more rural populations -
+      providing visual importance to counties with the largest populations.</p>
+
+    <p2><b>Mouseover a county to see its climate belief cluster and population class.</b></p2>
+
+</div>
+
+  <script>
+
+
+  //Create a map object.
+  var mymap = L.map('map', {zoomSnap:.5}).setView([39.5,-89], 5);
+
+  //Add a base map.
+  L.tileLayer.provider('CartoDB.PositronNoLabels').addTo(mymap);
+
+  //Add second basemap with labels only
+  mymap.createPane('baselabels');
+  mymap.getPane('baselabels').style.zIndex=600;
+  L.tileLayer.provider('CartoDB.PositronOnlyLabels',{
+                      pane: 'baselabels',
+                      interactive: false}).addTo(mymap);
+
+  //create a new map pane to house the states geojson
+  //zindex must be set higher than underlying basemap
+  mymap.createPane('statespane');
+  mymap.getPane('statespane').style.zIndex=400;
+
+  //Add state boundaries
+  //Add styling for states
+  function statestyle(feature) {
+      return {
+
+            fillOpacity: 0,
+            weight: 2,
+            color: 'black',
+                  };
+              }
+
+  states = L.geoJson.ajax("assets/us-states.geojson",{
+    style: statestyle,
+    pane: 'statespane',
+    interactive: false, //this allows the tooltips from the underlying counties to show through
+  }).addTo(mymap);
+
+  //Set style function that sets fill color property for counties polygons
+  function style(feature) {
+      return {
+
+            fillColor: feature.properties.Color,
+            fillOpacity: 1,
+            weight: 1,
+            color: 'lightgrey',
+                  };
+              }
+
+  //name the variable counties to be called later
+  var counties;
+
+  // this section uses highlight feature to control events on mouse hover
+  // create a highlight feature function to run on e
+  function highlightFeature(e) {
+      var layer = e.target;
+
+      layer.setStyle({
+          weight: 5,
+          color: 'black',
+          dashArray: ''
+      });
+
+      if (!L.Browser.ie && !L.Browser.opera && !L.Browser.edge) {
+          layer.bringToFront();
+      }
+
+  }
+
+    // also define what happens on mouseout
+      function resetHighlight(e) {
+        counties.resetStyle(e.target);
+    }
+
+
+    // use onEachFeature option to add listeners to counties
+    function onEachFeature(feature, layer) {{
+                layer.bindTooltip(feature.properties.GeoName
+                  + "<br> Cluster Number: " + feature.properties.Cluster
+                  + "<br> Population Size Class: " + feature.properties.PopClass,
+                {opacity: 0.9,
+                direction: 'auto',
+                className: 'toolclass',
+
+              });
+            }
+
+        layer.on({
+            mouseover: highlightFeature,
+            mouseout: resetHighlight
+        });
+    }
+
+
+  //Add county boundaries with climate opinion attributes
+  counties = L.geoJson.ajax("assets/county_clusters.geojson",{
+      style: style,
+      onEachFeature: onEachFeature,
+      attribution: "Data: Howe et al. (2015) | US Census Bureau | Map: J.W. Sugg (2020)",
+  }).addTo(mymap);
+
+    //Add legend as a container with a new div in lower left corner
+    //linked to css style properties above
+  var mapControlsContainer = document.getElementsByClassName("leaflet-control")[0];
+  var legendContainer = document.getElementById("legendContainer");
+  mapControlsContainer.appendChild(legendContainer);
+
+  //Add a scale bar to map
+  L.control.scale({position: 'bottomleft'}).addTo(mymap);
+
+  //Add titleinfo as a container with a new div in top right corner
+  //linked to css style properties above
+  var mapControlsContainer = document.getElementsByClassName("leaflet-control")[0];
+  var titleinfo = document.getElementById("titleinfo");
+  mapControlsContainer.appendChild(titleinfo);
+
+</script>
+</body>
+</html>
