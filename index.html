@@ -9,34 +9,24 @@
     <style>
         html, body, #map { width: 100%; height: 100%; margin: 0; background: #fff; }
 
-        #legendContainer {
-          position: fixed;
-          bottom: 30px;
-          right: 10px;
-          background-color: white;
-          border: 1px solid lightgrey;
-          width: 308px;
-          height: 150px;
-          background-image: url("./img/legend.jpg");
-          background-repeat: no-repeat;
-          background-position: center;
-          background-size: contain;
-          box-shadow: 0 0 10px;
-        }
-
         #titleinfo {
           padding: 10px;
           padding-left: 20px;
+          padding-top: 25px;
           box-shadow: 0 0 10px;
           font-family: 'Titillium Web', sans-serif;
-          font-size:  16px;
+          font-size:  13px;
           position: fixed;
           top: 10px;
           right: 10px;
           background-color: white;
-          width: 280px;
-          height: 750px;
+          width: 300px;
+          height: 850px;
           text-align: left;
+          background-image: url("./img/legend.jpg");
+          background-repeat: no-repeat;
+          background-position: bottom;
+          background-size: contain;
         }
 
       h2{
@@ -44,19 +34,9 @@
           margin: 0px;
         }
 
-      p{
-          padding: 10px;
-          margin: 0px;
-      }
-
       .toolclass{
         font-family: 'Titillium Web', sans-serif;
         font-size: 16px;
-      }
-
-      p2{
-        font-size: 18px;
-        padding-top: 20px;
       }
 
     </style>
@@ -69,17 +49,24 @@
   <!-- Our web map and content will go here -->
   <div id="map"></div>
 
-  <div id="legendContainer"></div>
-
  <div id="titleinfo">
     <h2>What do Americans believe about Climate Change?</h2>
-    <p>Americans remain polarized about climate change, yet recent research has uncovered a plurality of opinions among the public, with support for
-      a range of awareness levels, risk perceptions, and policy prescriptions. This map shows the character and distribution of these beliefs at the county level, as indicated by
-      each county's cluster membership. In general, clusters one and two are more opposed to climate change opinions, cluster three is more moderate, and clusters four, five, and
-      six are most supportive, yet they all vary in their support for individual opinions. This map uses a value-by-alpha technique to apply increasing levels of transparency to counties with more rural populations -
-      providing visual importance to counties with the largest populations.</p>
+    <p>Americans remain polarized about climate change, yet recent research has uncovered a plurality of opinions about it among the public.
+      This map uses opinion estimates from the Yale Program on Climate Change Communication to define groups of counties where majorities
+      share similarities in their climate change awareness levels, risk perceptions, and policy support. A value-by-alpha technique is used to
+      apply increasing levels of transparency to counties with more rural populations - providing visual importance to counties with the largest populations.
+      The result is a picture of the character and geographic distribution of Americans widely varying climate change beliefs.</p>
 
-    <p2><b>Mouseover a county to see its climate belief cluster and population class.</b></p2>
+    <h3>Mouseover a county to see its climate belief cluster and population class.</h3>
+
+    <h3>What do the clusters mean?</h3>
+
+    <p><i><b>Cluster 1:</b> Lowest levels of awareness, risk perception, and policy support.
+              <br><b>Cluster 2:</b> Low levels of awareness and risk perception, and less opposed to some climate policies.
+              <br><b>Cluster 3:</b> Moderate levels of awareness, risk perception, and support for climate policies.
+              <br><b>Cluster 4:</b> High levels of awareness, moderate risk perception, and high support for some climate policies.
+              <br><b>Cluster 5:</b> Moderate levels of awareness, high risk perception, and high support for some climate policies.
+              <br><b>Cluster 6:</b> Highest levels of awareness, risk perception, and support for climate policies.</p>
 
 </div>
 
@@ -87,7 +74,7 @@
 
 
   //Create a map object.
-  var mymap = L.map('map', {zoomSnap:.5}).setView([39.5,-89], 5);
+  var mymap = L.map('map', {zoomSnap:.5}).setView([39.5,-89], 5.5);
 
   //Add a base map.
   L.tileLayer.provider('CartoDB.PositronNoLabels').addTo(mymap);
@@ -176,19 +163,12 @@
         });
     }
 
-
   //Add county boundaries with climate opinion attributes
   counties = L.geoJson.ajax("assets/county_clusters.geojson",{
       style: style,
       onEachFeature: onEachFeature,
-      attribution: "Data: Howe et al. (2015) | US Census Bureau | Map: J.W. Sugg (2020)",
+      attribution: "| Map: J.W. Sugg (2020) | Data from US Census Bureau & from Howe, Peter D., et al. <br>'Geographic variation in opinions on climate change at state and local scales in the USA.' Nature Climate Change 5.6 (2015): 596-603.",
   }).addTo(mymap);
-
-    //Add legend as a container with a new div in lower left corner
-    //linked to css style properties above
-  var mapControlsContainer = document.getElementsByClassName("leaflet-control")[0];
-  var legendContainer = document.getElementById("legendContainer");
-  mapControlsContainer.appendChild(legendContainer);
 
   //Add a scale bar to map
   L.control.scale({position: 'bottomleft'}).addTo(mymap);
